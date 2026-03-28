@@ -1,0 +1,89 @@
+{
+  "directors": [
+    {
+      "first_name": "Ralph",
+      "last_name": "Sekkelwagner",
+      "birth_year": 1990
+    },
+    {
+      "first_name": "Osulu",
+      "last_name": "Siggawagane"
+    },
+    {
+      "first_name": "Rikkarda",
+      "last_name": "Polet",
+      "birth_year": 1989
+    },
+    {
+      "first_name": "Olivia",
+      "last_name": "Passenta",
+      "birth_year": 1960
+    }
+  ],
+  "movies": [
+    {
+      "title": "Following the rising sun",
+      "genre": "drama",
+      "duration_min": 129,
+      "director": "Sekkelwagner",
+      "description": "A grieving young man travels across Japan in search of meaning, only to uncover a hidden past that reshapes his future.",
+      "release_year": 2007
+    },
+    {
+      "title": "Fooling Rudi",
+      "genre": "comedy",
+      "director": "Siggawagane",
+      "description": "When a lovable but clueless prankster accidentally impersonates a famous life coach, his outrageous advice turns a small town upside down.",
+      "duration_min": 98,
+      "release_year": 2001
+    },
+    {
+      "title": "Watch your back",
+      "genre": "thriller",
+      "director": "Passenta",
+      "duration_min": 132,
+      "description": "After witnessing a crime, an ordinary woman becomes the target of a relentless stalker who always seems one step ahead.",
+      "release_year": 2001
+    },
+    {
+      "title": "Restless Dreams",
+      "genre": "romance",
+      "director": "Passenta",
+      "duration_min": 110,
+      "description": "Two strangers bound by recurring dreams of each other set out to meet in real life, questioning fate, love, and coincidence.",
+      "release_year": 1998
+    },
+    {
+      "title": "Climbing Mount Trestcold",
+      "genre": "action",
+      "director": "Siggawagane",
+      "duration_min": 112,
+      "description": "A group of climbers trapped on a deadly mountain realize the greatest danger isn’t the freezing cold—but one of their own.",
+      "release_year": 1997
+    },
+    {
+      "title": "When you think you've seen it all",
+      "genre": "comedy",
+      "director": "Passenta",
+      "duration_min": 132,
+      "description": "A jaded film critic’s life spirals into chaos when he’s forced to live through increasingly absurd real-life scenarios that outdo any movie he’s ever watched.",
+      "release_year": 2011
+    },
+    {
+      "title": "Whisper his name",
+      "genre": "thriller",
+      "director": "Polet",
+      "duration_min": 110,
+      "description": "A journalist investigating a string of disappearances discovers that speaking a mysterious man’s name aloud may summon something she can’t escape.",
+      "release_year": 2023
+    },
+    {
+      "title": "Marillin Martins",
+      "genre": "romance",
+      "director": "Polet",
+      "duration_min": 90,
+      "description": "A guarded artist finds unexpected love when a free-spirited traveler enters her life, challenging everything she thought she knew about vulnerability and connection.",
+      "release_year": 2022
+    }
+  ]
+}

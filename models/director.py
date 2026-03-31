@@ -11,9 +11,11 @@ class DirectorCreate(SQLModel):
     last_name: str
     birth_year: int | None = None
 
+
 class Director(DirectorCreate, table=True):
     id: int | None = Field(default=None, primary_key=True)
     movies: list["Movie"] | None = Relationship(back_populates="director")
+
 
 class DirectorPatch(SQLModel):
     first_name: str | None = None

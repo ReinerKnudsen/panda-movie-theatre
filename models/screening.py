@@ -8,7 +8,7 @@ class ScreeningCreate(SQLModel):
     movie_id: int
     screen_id: int
     screen_time: datetime
-    bookings: int | None = None
+    bookings: int = 0
 
     @field_validator("screen_time")
     @classmethod

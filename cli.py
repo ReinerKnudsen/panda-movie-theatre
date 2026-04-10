@@ -3,6 +3,8 @@ import json
 from database import engine
 from models.director import Director
 from models.movie import Genre, Movie  # noqa F401
+from models.screen import Screen
+from models.screening import Screening
 from sqlmodel import Session, delete, select
 
 import typer
@@ -81,14 +83,25 @@ def seed_database():
             data = json.load(f)
             directors = data["directors"]
             movies = data["movies"]
+            screens = data["screens"]
+            screenings = data["screenings"]
         with Session(engine) as session:
+            session.exec(delete(Screening))
             session.exec(delete(Movie))
+            session.exec(delete(Screen))
             session.exec(delete(Director))
             session.commit()
+            # seed directors
             for d in directors:
                 new_d = Director.model_validate(d)
                 session.add(new_d)
             session.commit()
+            # seed screens
+            for s in screens:
+                new_s = Screen.model_validate(s)
+                session.add(new_s)
+            session.commit()
+            # seed movies, create relation to directors
             statement = select(Director)
             directors = session.exec(statement).all()
             # Kurversion für das folgende
@@ -101,6 +114,24 @@ def seed_database():
                 new_m = Movie.model_validate(m)
                 session.add(new_m)
             session.commit()
+            # seed screenings, create relation to movies and screens
+            statement_s = select(Screen)
+            screens = session.exec(statement_s).all()
+            statement_m = select(Movie)
+            movies = session.exec(statement_m).all()
+            screens_map = {}
+            for s in screens:
+                screens_map[s.number] = s.id
+            movies_map = {}
+            for m in movies:
+                movies_map[m.title] = m.id
+            for sc in screenings:
+                sc["movie_id"] = movies_map[sc["movie"]]
+                sc["screen_id"] = screens_map[sc["screen"]]
+                new_sc = Screening.model_validate(sc)
+                session.add(new_sc)
+            session.commit()
+
     else:
         exit()
 

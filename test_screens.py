@@ -19,38 +19,47 @@ def test_get_all_screens(client: TestClient):
 
 
 def test_get_screen_by_id(client: TestClient):
-    new_screen = create_screen(client)
-    assert new_screen is not None
-    response = client.get("/screens/1")
+    screen = create_screen(client)
+    assert screen is not None
+    response = client.get(f"/screens/{screen.id}")
     assert response.status_code == 200
-    assert response.json() == new_screen.model_dump(mode="json")
+    assert response.json() == screen.model_dump(mode="json")
 
 
 def test_fail_get_screen_by_id(client: TestClient):
-    response = client.get("/screens/17")
+    response = client.get("/screens/87")
     assert response.status_code == 404
+    assert response.json()["detail"] == "Screen with id 87 is unknown"
 
 
 def test_create_new_screen(client: TestClient):
-    another_screen = ScreenCreate(
-        number=2, floor=Floor.FIRST, capacity=200, available=True, turnaround_min=10
-    )
-    result_screen = Screen(
-        id=1,
-        number=2,
-        floor=Floor.FIRST,
-        capacity=200,
-        available=True,
-        turnaround_min=10,
-    )
-    response = client.post("/screens", json=another_screen.model_dump(mode="json"))
-    assert response.status_code == 201
-    assert response.json() == result_screen.model_dump(mode="json")
+    screen = create_screen(client)
+    assert screen is not None
 
 
 def test_update_screen(client: TestClient):
-    new_screen = create_screen(client)
-    assert new_screen is not None
-    response = client.patch("/screens/1", json={"capacity": 230})
+    screen = create_screen(client)
+    assert screen is not None
+    response = client.patch(f"/screens/{screen.id}", json={"capacity": 230})
     assert response.status_code == 200
     assert response.json()["capacity"] == 230
+
+
+def test_fail_update_non_existing_screen(client: TestClient):
+    response = client.patch("/screens/87", json={"capacity": 230})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Screen with id 87 is unknown"
+
+
+def test_delete_screen(client: TestClient):
+    screen = create_screen(client)
+    assert screen is not None
+    response = client.delete(f"/screens/{screen.id}")
+    assert response.status_code == 200
+    assert response.json() == screen.model_dump(mode="json")
+
+
+def test_fail_delete_non_existing_screen(client: TestClient):
+    response = client.delete("/screens/87")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Screen with id 87 is unknown"

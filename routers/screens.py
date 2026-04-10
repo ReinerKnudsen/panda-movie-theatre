@@ -1,8 +1,8 @@
-from database import get_session
-from models.screen import Screen, ScreenCreate, ScreenPatch
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
-from fastapi import APIRouter, Depends, HTTPException
+from database import get_session
+from models.screen import Screen, ScreenCreate, ScreenPatch
 
 router = APIRouter(prefix="/screens", tags=["screens"])
 
@@ -41,7 +41,7 @@ async def create_screen(
 @router.patch("/{id}", status_code=200)
 async def update_screen(
     id: int, screen: ScreenPatch, session: Session = Depends(get_session)
-) -> Screen:
+) -> Screen | None:
     existing_screen = session.get(Screen, id)
     if existing_screen is not None:
         screen_data = screen.model_dump(exclude_unset=True)

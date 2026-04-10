@@ -1,9 +1,10 @@
 import pytest
-from database import get_session
 from fastapi.testclient import TestClient
-from main import app
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
+
+from database import get_session
+from main import app
 
 
 @pytest.fixture(name="session")
@@ -17,6 +18,7 @@ def session_fixture():
     with Session(engine) as session:
         yield session
     SQLModel.metadata.drop_all(engine)  # nach dem Test alles weg
+    engine.dispose()  # ← das schließt alle Verbindungen sauber
 
 
 @pytest.fixture(name="client")

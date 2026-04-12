@@ -1212,9 +1212,125 @@ assert screening.model_dump(mode="json")["bookings"] == 5
 
 ---
 
-### Nächste Themen
+## 2026-04-12 - Supabase JavaScript API & Typer CLI
 
-- **Rich** — schönere CLI-Ausgaben
-- **Auth mit FastAPI** — OAuth2, JWT Tokens
-- **PMT CLI** — die App wirklich bedienbar machen
-- **Alembic** — Datenbankmigrationen
+### Supabase: Wie die JavaScript API wirklich funktioniert
+
+**Wichtigste Erkenntnis:** Die Supabase JS API ist KEIN SQL, sondern JavaScript, das zu SQL wird!
+
+```javascript
+// Das sieht aus wie "erst holen, dann filtern":
+const { data, error } = await supabase
+  .from('trips')
+  .select('*, fahrer:profiles(*, gruppe:groups(*))')
+  .eq('fahrer_id', fahrerId)
+  .order('datum', { ascending: false });
+
+// Aber es wird zu SQL:
+SELECT trips.*, profiles.*, groups.*
+FROM trips
+LEFT JOIN profiles ON trips.fahrer_id = profiles.id
+LEFT JOIN groups ON profiles.group_id = groups.id
+WHERE trips.fahrer_id = 'xyz'
+ORDER BY trips.datum DESC
+```
+
+**→ Die Filterung passiert auf dem SERVER, nur das Ergebnis kommt zurück!**
+
+### Joins sind implizit basierend auf Foreign Keys
+
+Der Join zwischen `profiles` und `groups` funktioniert automatisch, weil in der Datenbank ein Foreign Key definiert ist (z.B. `profiles.group_id → groups.id`). Supabase erkennt diese Beziehung automatisch.
+
+### Virtuelle Spalten erzeugen
+
+```javascript
+.select('*, fahrer:profiles(*)')
+        //  ^^^^^^
+        //  Neuer Name im Ergebnis - existiert nicht in der DB!
+```
+
+Das Ergebnis hat eine neue Eigenschaft `fahrer` mit den verknüpften Profil-Daten. Die Original-Spalte `fahrer_id` bleibt auch erhalten.
+
+**Erinnert mich an:** `AddColumns()` in PowerFx (PowerApps) - gleiches Konzept!
+
+### Aggregation auf dem Server
+
+**Schlecht:** Alle Trips holen und in JavaScript summieren
+
+```javascript
+const trips = await supabase.from('trips').select('start_km, end_km');
+const total = trips.reduce((sum, t) => sum + (t.end_km - t.start_km), 0);
+```
+
+**Gut:** PostgreSQL Function erstellen und nur das Ergebnis holen
+
+```sql
+CREATE FUNCTION get_total_kilometers() RETURNS numeric AS $$
+  SELECT COALESCE(SUM(end_kilometer - start_kilometer), 0) FROM trips;
+$$ LANGUAGE sql;
+```
+
+```javascript
+const { data } = await supabase.rpc('get_total_kilometers');
+// data ist nur eine Zahl, keine 1000 Zeilen!
+```
+
+### Python/Typer: Bugs gefunden und gefixed
+
+**Bug 1:** `enumerate()` falsch verwendet
+
+```python
+# FALSCH - gibt "0 - 0, 1 - 1, 2 - 2" aus:
+for i, f in enumerate(valid_floors):  # valid_floors = [0, 1, 2, 3]
+    typer.echo(f"{i} - {f}")
+
+# RICHTIG - floors sind schon die Zahlen!
+for f in valid_floors:
+    typer.echo(f)
+```
+
+**Bug 2:** While-Loop mit OR läuft ewig
+
+```python
+# FALSCH - immer True!
+while is_avail != "j" or is_avail != "J" or is_avail != "n" or is_avail != "N":
+
+# RICHTIG:
+while is_avail not in ["j", "J", "n", "N"]:
+```
+
+**Schönster Code heute:**
+
+```python
+is_avail = typer.prompt("Verfügbar? (J/n)", type=str, default="j")
+s_avail = is_avail.lower() == "j"
+```
+
+So clean! 😍
+
+### typer.Abort() vs. Wiederholung
+
+- `raise typer.Abort()` → Programm komplett abbrechen
+- `while`-Schleife → Eingabe wiederholen bei Fehler
+
+Ich wollte Wiederholung, nicht Abbruch!
+
+### click.prompt() > typer.prompt()
+
+**Problem:** `typer.prompt()` zeigt bei `type=int` den Default nicht an und akzeptiert leere Eingabe nicht.
+
+**Lösung:** `click.prompt()` verwenden (Typer basiert eh auf Click):
+
+```python
+import click
+
+s_turn = click.prompt("Turnaround-Zeit (Minuten)", type=int, default=15, show_default=True)
+# Zeigt: "Turnaround-Zeit (Minuten) [15]:"
+# Enter → s_turn = 15 ✅
+```
+
+### Nächste Schritte
+
+- PMT CLI weiter ausbauen
+- Mehr über PostgreSQL Functions lernen
+- Supabase Realtime anschauen?

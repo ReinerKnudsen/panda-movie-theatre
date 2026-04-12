@@ -1148,10 +1148,73 @@ Dann App neu starten — `create_all` erstellt die Tabelle mit dem neuen Schema.
 
 ---
 
+---
+
+## 12.04.2026 — Booking Endpoints und Tests
+
+### Was war die Aufgabe?
+
+PATCH und DELETE für Bookings bauen — mit Business Rules die mehrere Objekte gleichzeitig anfassen. Tests für alle Booking-Endpoints schreiben.
+
+---
+
+### Konzept 48 — YAGNI: You Ain't Gonna Need It
+
+Nicht erreichbarer Code gehört nicht in die Codebase. Wenn ein Codepfad durch Datenbank-Constraints garantiert nie ausgeführt wird — raus damit. Weniger Code ist weniger Wartungsaufwand.
+
+---
+
+### Konzept 49 — Kapazitätsberechnung beim Update
+
+```python
+new_bookings = screening.bookings - booking.seats + b_patch.seats
+```
+
+Alte Buchung abziehen, neue hinzufügen — in einem Schritt. Funktioniert für Erhöhung und Reduzierung gleichermaßen.
+
+---
+
+### Konzept 50 — Objekte leben nach session.delete() weiter
+
+```python
+session.delete(booking)
+session.commit()
+return booking  # ✅ — booking ist noch im Python-Speicher
+```
+
+`session.delete()` + `commit()` löscht das Objekt in der DB — aber das Python-Objekt lebt weiter bis die Funktion endet. Kein `session.refresh()` nach Delete — das würde einen Fehler werfen.
+
+---
+
+### Konzept 51 — f-String nicht vergessen in Tests
+
+```python
+client.patch("/bookings/{booking.id}", ...)   # ❌ — String, nicht f-String
+client.patch(f"/bookings/{booking.id}", ...)  # ✅ — f-String wertet aus
+```
+
+Ohne `f` wird `{booking.id}` als Literal-String übergeben — FastAPI kann das nicht als Integer parsen und gibt `422 Unprocessable Entity` zurück.
+
+---
+
+### Konzept 52 — Screening-Update im Test prüfen
+
+Ein guter Test prüft nicht nur den direkten Response — sondern auch Seiteneffekte:
+
+```python
+response = client.patch(f"/bookings/{booking.id}", json={"seats": 5})
+assert response.status_code == 200
+
+# Seiteneffekt prüfen: wurde screening.bookings korrekt aktualisiert?
+screening = session.get(Screening, booking.screening_id)
+assert screening.model_dump(mode="json")["bookings"] == 5
+```
+
+---
+
 ### Nächste Themen
 
-- **Edge Cases Booking** — Stornierung, Änderung mit Kapazitätsprüfung
-- **Auth mit FastAPI** — OAuth2, JWT Tokens, Rollen
-- **Alembic** — Datenbankmigrationen ohne DROP TABLE
 - **Rich** — schönere CLI-Ausgaben
+- **Auth mit FastAPI** — OAuth2, JWT Tokens
 - **PMT CLI** — die App wirklich bedienbar machen
+- **Alembic** — Datenbankmigrationen

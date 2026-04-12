@@ -113,19 +113,19 @@
     {
       "movie": "Following the rising sun",
       "screen": 1,
-      "screen_time": "2026-04-02T18:00",
+      "screen_time": "2027-04-02T18:00",
       "bookings": 0
     },
     {
       "movie": "Fooling Rudi",
       "screen": 2,
-      "screen_time": "2026-04-02T18:30",
+      "screen_time": "2027-04-02T18:30",
       "bookings": 32
     },
     {
       "movie": "Watch your back",
       "screen": 3,
-      "screen_time": "2026-04-02T18:00",
+      "screen_time": "2027-04-02T18:00",
       "bookings": 46
     }
   ]

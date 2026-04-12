@@ -21,8 +21,7 @@ class BookingCreate(SQLModel):
 
 
 class BookingPatch(SQLModel):
-    screening_id: int | None = None
-    seats: int | None = None
+    seats: int
 
 
 class Booking(BookingCreate, table=True):

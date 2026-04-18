@@ -10,10 +10,20 @@ class Floor(int, Enum):
     SECOND = 2
     THIRD = 3
 
+    @property
+    def label(self) -> str:
+        labels = {
+            Floor.GROUND: "Erdgeschoss",
+            Floor.FIRST: "1. Etage",
+            Floor.SECOND: "2. Etage",
+            Floor.THIRD: "3. Etage",
+        }
+        return labels[self]
+
 
 class ScreenCreate(SQLModel):
     number: int
-    floor: Floor | None = None
+    floor: Floor
     capacity: int
     available: bool = True
     turnaround_min: int

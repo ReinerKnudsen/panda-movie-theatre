@@ -128,5 +128,29 @@
       "screen_time": "2027-04-02T18:00",
       "bookings": 46
     }
+  ],
+  "customers": [
+    {
+      "first_name": "Thomas",
+      "last_name": "Gutenberg"
+    }
+  ],
+  "bookings": [
+    {
+      "screening_id": 1,
+      "customer_id": 1,
+      "booking_code": "PMT-20260809-0001",
+      "seats": 2
+    },
+    {
+      "screening_id": 2,
+      "booking_code": "PMT-20260809-0002",
+      "seats": 4
+    },
+    {
+      "screening_id": 2,
+      "booking_code": "PMT-20260809-0003",
+      "seats": 2
+    }
   ]
 }

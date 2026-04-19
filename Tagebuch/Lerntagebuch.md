@@ -1334,3 +1334,107 @@ s_turn = click.prompt("Turnaround-Zeit (Minuten)", type=int, default=15, show_de
 - PMT CLI weiter ausbauen
 - Mehr über PostgreSQL Functions lernen
 - Supabase Realtime anschauen?
+
+## 17.04.2026 — Rich Tabellen, CLI Struktur und List Commands
+
+### Was war die Aufgabe?
+
+CLI in Module aufteilen, alle List-Commands mit Rich-Tabellen bauen.
+
+---
+
+### Konzept 53 — CLI Module mit Typer
+
+```python
+# cli.py (Projektroot)
+from cli import movies, screens, directors
+
+app = typer.Typer()
+app.add_typer(movies.app, name="movies")
+app.add_typer(screens.app, name="screens")
+app.add_typer(directors.app, name="directors")
+```
+
+Jedes Modul hat seine eigene `app`:
+
+```python
+# cli/movies.py
+app = typer.Typer()
+
+@app.command()
+def create():
+    ...
+
+@app.command()
+def list():
+    ...
+```
+
+Aufruf: `python3 cli.py movies create` statt `python3 cli.py create-movie`
+
+---
+
+### Konzept 54 — Rich Tabellen
+
+```python
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
+table = Table(title="Säle")
+table.add_column("Nummer")
+table.add_column("Kapazität")
+
+for s in screens:
+    table.add_row(str(s.number), str(s.capacity))  # ← immer str!
+
+console.print(table)
+```
+
+- `Console` ersetzt `typer.echo()`
+- `Table` ist wie `<table>` in HTML — `add_column` wie `<th>`, `add_row` wie `<tr>`
+- Alle Werte müssen `str` sein — `str(s.number)` nicht vergessen
+
+---
+
+### Konzept 55 — Mehrere Joins in einer Query
+
+```python
+statement = (
+    select(Booking, Screening, Movie, Screen)
+    .join(Screening, Booking.screening_id == Screening.id)  # type: ignore
+    .join(Movie, Screening.movie_id == Movie.id)            # type: ignore
+    .join(Screen, Screening.screen_id == Screen.id)         # type: ignore
+    .outerjoin(Customer, Booking.customer_id == Customer.id) # type: ignore
+)
+for booking, screening, movie, screen in results:
+    ...
+```
+
+- `.join()` für Pflichtbeziehungen
+- `.outerjoin()` für optionale Beziehungen (z.B. Customer)
+- `# type: ignore` wegen IDE-Warnung — zur Laufzeit korrekt
+
+---
+
+### Konzept 56 — PostgreSQL Sequenzen zurücksetzen
+
+Nach `DELETE` vergibt PostgreSQL keine IDs von 1 neu — die Sequenz läuft weiter. Für den Seed:
+
+```python
+from sqlalchemy import text
+
+with engine.connect() as conn:
+    conn.execute(text("ALTER SEQUENCE screening_id_seq RESTART WITH 1"))
+    conn.commit()
+```
+
+`engine.connect()` direkt für raw SQL — kein SQLModel-Wrapper.
+
+---
+
+### Nächste Themen
+
+- **create-screening** und **create-booking** CLI Commands
+- **pyproject.toml** — `pmt` als installierbares CLI
+- **Auth mit FastAPI**

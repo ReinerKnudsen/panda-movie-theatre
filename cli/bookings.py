@@ -1,4 +1,6 @@
 import typer
+from rich.console import Console
+from rich.table import Table
 from sqlmodel import Session, select
 
 from database import engine
@@ -22,12 +24,26 @@ def list():
             .outerjoin(Customer, Booking.customer_id == Customer.id)  # type: ignore
         )
         results = session.exec(statement)
+        console = Console()
+        table = Table(title="Buchungen")
+        table.add_column("Code")
+        table.add_column("Film")
+        table.add_column("Saal")
+        table.add_column("Aufführung")
+        table.add_column("Plätze")
+        table.add_column("Kunde")
         for booking, screening, movie, screen in results:
             customer = (
-                f"Customer: {booking.customer.first_name} {booking.customer.last_name}"
+                f"{booking.customer.first_name} {booking.customer.last_name}"
                 if booking.customer
                 else ""
             )
-            typer.echo(
-                f'Booking {booking.booking_code}, Id {booking.id}\nFilm: "{movie.title}" in Kino {screen.number}\nAufführung: {screening.screen_time}\n{customer} \n'
+            table.add_row(
+                booking.booking_code,
+                movie.title,
+                str(screen.number),
+                str(screening.screen_time),
+                str(booking.seats),
+                customer,
             )
+        console.print(table)

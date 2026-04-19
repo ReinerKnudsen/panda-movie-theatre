@@ -1,6 +1,8 @@
 from datetime import datetime
 
 import typer
+from rich.console import Console
+from rich.table import Table
 from sqlmodel import Session, select
 
 from database import engine
@@ -74,7 +76,20 @@ def list():
     with Session(engine) as session:
         statement = select(Movie, Director).join(Director)
         results = session.exec(statement).all()
+        console = Console()
+        table = Table(title="Filme")
+        table.add_column("Id")
+        table.add_column("Titel")
+        table.add_column("Inhalt")
+        table.add_column("Jahr")
+        table.add_column("Regie")
         for movie, director in results:
-            typer.echo(
-                f"Title: {movie.title} ({movie.id})\nContent: {movie.description}\nYear: {movie.release_year}\nDirector: {director.first_name} {director.last_name}\n\n"
+            regie = f"{director.first_name} {director.last_name}"
+            table.add_row(
+                str(movie.id),
+                movie.title,
+                movie.description,
+                str(movie.release_year),
+                regie,
             )
+        console.print(table)

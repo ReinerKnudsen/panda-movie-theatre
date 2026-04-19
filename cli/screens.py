@@ -1,5 +1,7 @@
 import click
 import typer
+from rich.console import Console
+from rich.table import Table
 from sqlmodel import Session, select
 
 from database import engine
@@ -76,8 +78,22 @@ def list():
     with Session(engine) as session:
         statement = select(Screen)
         screens = session.exec(statement).all()
+        console = Console()
+        table = Table(title="Säle")
+        table.add_column("Nummer")
+        table.add_column("Id")
+        table.add_column("Etage")
+        table.add_column("Kapazität")
+        table.add_column("Turnaround-Zeit")
+        table.add_column("Status")
         for s in screens:
             status = "available" if s.available else "unavailable"
-            typer.echo(
-                f"Screen {s.number} (id: {s.id})\non floor {s.floor.label} with a capacity of {s.capacity}\nhas a turnaround time of {s.turnaround_min} minutes and is currently {status}.\n"
+            table.add_row(
+                str(s.number),
+                str(s.id),
+                s.floor.label,
+                str(s.capacity),
+                str(s.turnaround_min),
+                status,
             )
+        console.print(table)

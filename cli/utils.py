@@ -80,3 +80,7 @@ def generate_booking_code() -> str:
         ).one()
         code = f"PMT-{today.strftime('%Y%m%d')}-{count + 1:04d}"
     return code
+
+def find_booking(id=None, code=None):
+    with Session(engine) as session:
+    if id:

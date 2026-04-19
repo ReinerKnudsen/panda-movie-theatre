@@ -104,6 +104,12 @@ def create():
 
 
 @app.command()
+def delete(id=None, code=None):
+    # wird eine Buchung gelöscht, müssen die Bookings in dem Screening adjustiert werden
+    pass
+
+
+@app.command()
 def list():
     with Session(engine) as session:
         statement = (

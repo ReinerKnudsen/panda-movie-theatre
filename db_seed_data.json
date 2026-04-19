@@ -85,5 +85,72 @@
       "description": "A guarded artist finds unexpected love when a free-spirited traveler enters her life, challenging everything she thought she knew about vulnerability and connection.",
       "release_year": 2022
     }
+  ],
+  "screens": [
+    {
+      "number": 1,
+      "floor": 0,
+      "capacity": 180,
+      "available": true,
+      "turnaround_min": 20
+    },
+    {
+      "number": 2,
+      "floor": 0,
+      "capacity": 300,
+      "avaliable": true,
+      "turnaround_min": 25
+    },
+    {
+      "number": 3,
+      "floor": 1,
+      "capacity": 120,
+      "available": false,
+      "turnaround_min": 16
+    }
+  ],
+  "screenings": [
+    {
+      "movie": "Following the rising sun",
+      "screen": 1,
+      "screen_time": "2027-04-02T18:00",
+      "bookings": 0
+    },
+    {
+      "movie": "Fooling Rudi",
+      "screen": 2,
+      "screen_time": "2027-04-02T18:30",
+      "bookings": 32
+    },
+    {
+      "movie": "Watch your back",
+      "screen": 3,
+      "screen_time": "2027-04-02T18:00",
+      "bookings": 46
+    }
+  ],
+  "customers": [
+    {
+      "first_name": "Thomas",
+      "last_name": "Gutenberg"
+    }
+  ],
+  "bookings": [
+    {
+      "screening_id": 1,
+      "customer_id": 1,
+      "booking_code": "PMT-20260809-0001",
+      "seats": 2
+    },
+    {
+      "screening_id": 2,
+      "booking_code": "PMT-20260809-0002",
+      "seats": 4
+    },
+    {
+      "screening_id": 2,
+      "booking_code": "PMT-20260809-0003",
+      "seats": 2
+    }
   ]
 }

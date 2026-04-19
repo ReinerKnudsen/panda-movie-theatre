@@ -1,5 +1,4 @@
 .env
-/Tagebuch*
 **/__pycache__/
 **/*.pyc
 .pytest_cache/

@@ -93,7 +93,6 @@ async def create_booking(
     screening.sqlmodel_update({"bookings": screening.bookings + booking.seats})
     session.add(screening)
     session.commit()
-    session.refresh(new_booking)
     return new_booking
 
 

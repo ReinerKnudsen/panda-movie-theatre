@@ -1438,3 +1438,107 @@ with engine.connect() as conn:
 - **create-screening** und **create-booking** CLI Commands
 - **pyproject.toml** — `pmt` als installierbares CLI
 - **Auth mit FastAPI**
+
+Hier das Delta für heute:
+
+---
+
+## 19.04.2026 — CLI create Commands, Rich, utils.py und Architektur
+
+### Was war die Aufgabe?
+
+Alle `create` Commands für Screenings und Bookings bauen, Rich-Tabellen für alle List-Commands einführen, CLI in Module aufteilen.
+
+---
+
+### Konzept 57 — datetime aus String parsen
+
+```python
+from datetime import datetime
+
+screen_time_str = typer.prompt("Datum und Uhrzeit (YYYY-MM-DD HH:MM)")
+screen_time = datetime.strptime(screen_time_str, "%Y-%m-%d %H:%M")
+```
+
+`strptime` parst einen String in ein `datetime` Objekt — du gibst das Format vor. `datetime` Objekte können direkt verglichen werden:
+
+```python
+if screen_time <= datetime.now():
+    typer.echo("Datum liegt in der Vergangenheit")
+```
+
+---
+
+### Konzept 58 — while True mit break für komplexe Validierung
+
+```python
+while True:
+    pick = typer.prompt("Auswahl (Enter für keine Zuordnung)> ", default="")
+    if pick == "":
+        customer_id = None
+        break
+    try:
+        pick = int(pick)
+        if pick in customer_ids:
+            customer_id = pick
+            break
+        else:
+            typer.echo("Unbekannte Id")
+    except ValueError:
+        typer.echo("Bitte eine Zahl oder Enter eingeben.")
+```
+
+Wenn mehrere Fehlerfälle unterschieden werden müssen — `while True` mit `break` ist klarer als komplexe While-Bedingungen.
+
+---
+
+### Konzept 59 — DetachedInstanceError
+
+Nach dem Schließen einer Session sind SQLAlchemy-Objekte "losgelöst" — Zugriff auf Attribute schlägt fehl:
+
+```python
+with Session(engine) as session:
+    session.add(booking)
+    session.commit()
+    session.refresh(booking)
+    print_booking(booking)  # ✅ — innerhalb der Session
+
+print_booking(booking)  # ❌ — DetachedInstanceError
+```
+
+Lösung: Ausgaben innerhalb der Session machen, oder Daten vorher in einfache Variablen sichern.
+
+---
+
+### Konzept 60 — Service Layer als nächster Architekturschritt
+
+CLI und API erfinden aktuell Businesslogik doppelt. Der saubere Weg:
+
+```
+CLI ──────┐
+          ├──► Service Layer ──► Datenbank
+API ──────┘
+```
+
+`services/booking_service.py` enthält die Logik einmal — CLI und API rufen sie auf. Wird beim Einbau von Auth umgesetzt.
+
+---
+
+### Konzept 61 — ON DELETE SET NULL
+
+Wenn ein optionaler Foreign Key gelöscht wird, setzt PostgreSQL den Wert automatisch auf `NULL` — die abhängigen Datensätze bleiben erhalten:
+
+```python
+# Bewusste Entscheidung: Buchung bleibt bei Kundenlöschung erhalten (anonyme Buchung)
+customer_id: int | None = Field(default=None, foreign_key="customer.id")
+```
+
+Kommentare die erklären _warum_ — nicht nur _was_.
+
+---
+
+### Nächste Themen
+
+- **Auth mit FastAPI** — OAuth2, JWT, Service Layer
+- **pyproject.toml** — `pmt` als installierbares CLI
+- **Rich** weiter ausbauen — Farben, Styles

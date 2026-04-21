@@ -17,5 +17,7 @@ class CustomerPatch(SQLModel):
 
 
 class Customer(CustomerCreate, table=True):
+    # customer_id ist optional — ON DELETE SET NULL:
+    # Wird ein Kunde gelöscht, bleibt die Buchung erhalten (anonyme Buchung)
     id: int | None = Field(default=None, primary_key=True)
     bookings: list["Booking"] | None = Relationship(back_populates="customer")

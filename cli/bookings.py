@@ -3,21 +3,21 @@ from rich.console import Console
 from rich.table import Table
 from sqlmodel import Session, select
 
-from cli.utils import (
-    find_customer,
-    find_movie,
-    find_screen,
-    find_screening,
-    generate_booking_code,
-    load_customers,
-    load_screenings,
-)
 from database import engine
 from models.booking import Booking
 from models.customer import Customer
 from models.movie import Movie
 from models.screen import Screen
 from models.screening import Screening
+from services.booking_service import create_booking
+from utils import (
+    find_customer,
+    find_movie,
+    find_screen,
+    find_screening,
+    load_customers,
+    load_screenings,
+)
 
 app = typer.Typer()
 
@@ -53,7 +53,11 @@ def create():
     while pick is None or pick not in screenings_ids:
         pick = typer.prompt("Auswahl > ", type=int)
     screening_id = pick
+    if screening_id is None:
+        typer.echo("Screening ist unbekannt")
+        raise typer.Exit()
     screening = find_screening(screening_id)
+    screen = find_screen(screening.screen_id)
 
     customers = load_customers()
     customer_ids = [c.id for c in customers]
@@ -78,29 +82,18 @@ def create():
             typer.echo("Bitte eine Zahl oder Enter eingeben.")
     pick = None
 
-    capa = find_screen(screening.screen_id).capacity - screening.bookings
-    while pick is None or pick > capa:
-        pick = typer.prompt("Plätze", type=int)
-    seats = pick
+    available_seats = screen.capacity - screening.bookings
+    typer.echo(f"Verfügbare Plätze: {available_seats}")
+    seats = typer.prompt("Plätze", type=int)
+    try:
+        with Session(engine) as session:
+            new_booking = create_booking(session, screening_id, seats, customer_id)
+    except ValueError as e:
+        typer.echo(f"Fehler bei der Anlage der Buchung: {e}")
+        raise typer.Exit()
 
-    new_booking = Booking(
-        screening_id=screening_id,
-        customer_id=customer_id,
-        seats=seats,
-        booking_code=generate_booking_code(),
-    )
-
-    with Session(engine) as session:
-        session.add(new_booking)
-        session.commit()
-        session.refresh(new_booking)
-
-        screening.sqlmodel_update({"bookings": screening.bookings + new_booking.seats})
-        session.add(screening)
-        session.commit()
-
-        typer.echo("Buchung angelegt")
-        print_booking(new_booking, screening, customer)
+    typer.echo("Buchung angelegt")
+    print_booking(new_booking, screening, customer)
 
 
 @app.command()

@@ -5,11 +5,11 @@ from rich.console import Console
 from rich.table import Table
 from sqlmodel import Session, select
 
-from cli.utils import find_movie, find_screen, load_movies, load_screens
 from database import engine
 from models.movie import Movie
 from models.screen import Screen
 from models.screening import Screening
+from utils import find_movie, find_screen, load_movies, load_screens
 
 app = typer.Typer()
 

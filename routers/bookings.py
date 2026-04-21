@@ -7,6 +7,7 @@ from database import get_session
 from models.booking import Booking, BookingCreate, BookingPatch
 from models.screen import Screen
 from models.screening import Screening
+from services.booking_service import create_booking as make_booking
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -70,30 +71,12 @@ async def create_booking(
     booking: BookingCreate, session: Session = Depends(get_session)
 ) -> Booking:
     # Sind noch ausreichend Sitzplaetze vorhanden
-    screening = get_screening(session, booking.screening_id)
-    if screening is not None:
-        screen = session.get(Screen, screening.screen_id)
-        if screen is not None:
-            if screen.capacity < screening.bookings + booking.seats:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Requested number of seats ({booking.seats}) is not available)",
-                )
-
-    # Booking Code einbauen
-    booking_data = booking.model_dump()
-    booking_data["booking_code"] = generate_booking_code(session)
-    new_booking = Booking(**booking_data)
-
-    session.add(new_booking)
-    session.commit()
-    session.refresh(new_booking)
-
-    # Buchungsanzahl im Screening erhöhen
-    screening.sqlmodel_update({"bookings": screening.bookings + booking.seats})
-    session.add(screening)
-    session.commit()
-    return new_booking
+    try:
+        return make_booking(
+            session, booking.screening_id, booking.seats, booking.customer_id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.patch("/{id}", status_code=200)
